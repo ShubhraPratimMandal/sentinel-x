@@ -171,7 +171,7 @@ sentinel-x/
 
 ## Release & Demonstration
 
-The repository includes a GitHub Pages workflow for the public synthetic-data demonstration. The web console falls back to offline demo data when the API is unavailable. This is a research/demo release, not an operational intelligence system.
+The repository includes a GitHub Actions public-demo build artifact for the synthetic-data demonstration. The web console falls back to offline demo data when the API is unavailable. This is a research/demo release, not an operational intelligence system.
 
 ## Local Development
 
