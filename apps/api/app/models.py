@@ -42,6 +42,15 @@ class TimelineEvent(BaseModel):
     description: str
     confidence: int = Field(ge=0, le=100)
 
+class AuditEvent(BaseModel):
+    id: str
+    actor: str
+    action: str
+    target: str
+    timestamp: datetime
+    outcome: Literal["SUCCESS", "REVIEW", "DENIED"]
+    details: str = ""
+
 class SystemOverview(BaseModel):
     active_cases: int
     correlated_events: int
