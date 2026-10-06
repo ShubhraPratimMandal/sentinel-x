@@ -5,6 +5,7 @@
 > A defensive cybersecurity research platform for threat intelligence fusion, incident analysis, entity correlation, AI-assisted investigation, and security operations visualization.
 
 **Project Status:** 🟡 Active Development  
+**Current Release:** 0.1.0-foundation  
 **Classification:** Public Research / Demonstration  
 **Primary Focus:** Cybersecurity • Threat Intelligence • AI • Security Analytics • Cloud
 
@@ -15,6 +16,20 @@
 SENTINEL-X is a portfolio-grade cyber intelligence platform designed to demonstrate how disparate security observations can be normalized, correlated, scored, investigated, and presented to analysts through a unified operational interface.
 
 The platform uses **synthetic and authorized defensive data** for demonstrations. It is not designed for unauthorized surveillance, intrusion, exploitation, or targeting of real-world systems.
+
+## Current Build
+
+The first vertical slice is now established:
+
+- React + TypeScript analyst console
+- FastAPI service with health and system-status endpoints
+- Docker Compose development stack
+- PostgreSQL and Redis service foundations
+- Architecture and threat-model documentation
+- Synthetic-data boundary
+- GitHub Actions repository validation
+- Security and contribution policies
+- Dark analyst command-center UI foundation
 
 ## Core Capabilities
 
@@ -35,30 +50,30 @@ The platform uses **synthetic and authorized defensive data** for demonstrations
 ## High-Level Architecture
 
 ```text
-                     ┌──────────────────────────┐
-                     │       SENTINEL-X         │
-                     │   Intelligence Platform  │
-                     └────────────┬─────────────┘
-                                  │
-             ┌────────────────────┼────────────────────┐
-             ▼                    ▼                    ▼
-      ┌─────────────┐      ┌─────────────┐      ┌─────────────┐
-      │ Threat Intel│      │ AI Analysis │      │ Investigation│
-      │    Layer    │      │    Layer    │      │     Layer    │
-      └──────┬──────┘      └──────┬──────┘      └──────┬──────┘
-             └────────────────────┼────────────────────┘
-                                  ▼
-                     ┌──────────────────────────┐
-                     │ Correlation / Risk Engine│
-                     └────────────┬─────────────┘
-                                  ▼
-                     ┌──────────────────────────┐
-                     │ Analyst Command Interface │
-                     └────────────┬─────────────┘
-                                  ▼
-                     ┌──────────────────────────┐
-                     │ Cases • Alerts • Reports │
-                     └──────────────────────────┘
+                     +--------------------------+
+                     |       SENTINEL-X         |
+                     |   Intelligence Platform  |
+                     +------------+-------------+
+                                  |
+             +--------------------+--------------------+
+             v                    v                    v
+      +-------------+      +-------------+      +-------------+
+      | Threat Intel|      | AI Analysis |      | Investigation|
+      |    Layer    |      |    Layer    |      |     Layer    |
+      +------+------+      +------+------+      +------+------+
+             +--------------------+--------------------+
+                                  v
+                     +--------------------------+
+                     | Correlation / Risk Engine|
+                     +------------+-------------+
+                                  v
+                     +--------------------------+
+                     | Analyst Command Interface |
+                     +------------+-------------+
+                                  v
+                     +--------------------------+
+                     | Cases • Alerts • Reports |
+                     +--------------------------+
 ```
 
 ## Repository Structure
@@ -70,11 +85,11 @@ sentinel-x/
 │   └── api/                 # FastAPI service
 ├── services/
 │   ├── correlation/         # Event/entity correlation engine
-│   ├── intelligence/        # Threat intelligence processing
+│   ├── intelligence/       # Threat intelligence processing
 │   └── ai/                  # AI-assisted analysis services
 ├── data/
-│   ├── synthetic/            # Safe demo datasets
-│   └── schemas/              # Data contracts
+│   ├── synthetic/           # Safe demo datasets
+│   └── schemas/             # Data contracts
 ├── database/
 │   ├── migrations/
 │   └── seeds/
@@ -98,23 +113,12 @@ sentinel-x/
 └── README.md
 ```
 
-## Development Principles
+## Technology Stack
 
-1. **Defensive by design**
-2. **Synthetic data by default**
-3. **Least privilege**
-4. **Auditable actions**
-5. **Explainable risk scoring**
-6. **Secure secrets handling**
-7. **Test before release**
-8. **Clear separation between facts, correlations, and hypotheses**
-
-## Planned Technology Stack
-
-| Layer | Planned Technology |
+| Layer | Technology |
 |---|---|
-| Frontend | React + TypeScript |
-| UI | Tailwind CSS |
+| Frontend | React + TypeScript + Vite |
+| UI | Custom dark analyst console CSS |
 | API | Python + FastAPI |
 | Database | PostgreSQL |
 | Cache / Jobs | Redis |
@@ -126,15 +130,16 @@ sentinel-x/
 
 ## Roadmap
 
-### Phase 1
+### Phase 1 — Foundation
 - [x] Repository initialized
-- [ ] Architecture baseline
-- [ ] Web application shell
-- [ ] API service
-- [ ] Database foundation
-- [ ] Docker development environment
+- [x] Architecture baseline
+- [x] Web application shell
+- [x] API service
+- [x] Database service foundation
+- [x] Docker development environment
+- [x] CI repository validation
 
-### Phase 2
+### Phase 2 — Intelligence Core
 - [ ] IOC registry
 - [ ] Event normalization
 - [ ] Correlation engine
@@ -142,25 +147,39 @@ sentinel-x/
 - [ ] Incident management
 - [ ] ATT&CK mapping
 
-### Phase 3
+### Phase 3 — Analyst Operations
 - [ ] Investigation workspace
 - [ ] Entity graph
 - [ ] Timeline analysis
 - [ ] Threat visualization
 - [ ] Analyst workflow
+- [ ] Audit trail
 
-### Phase 4
-- [ ] AI assistant
+### Phase 4 — AI & Analytics
+- [ ] AI analyst assistant
 - [ ] Report generation
 - [ ] Confidence-aware analysis
 - [ ] Advanced analytics
+- [ ] Explainable recommendations
 
-### Phase 5
+### Phase 5 — Cloud & Release
 - [ ] Security hardening
-- [ ] CI/CD
+- [ ] Full CI/CD
 - [ ] OCI deployment
 - [ ] Production documentation
 - [ ] Public demo release
+
+## Local Development
+
+See [Local Development](docs/operations/local-development.md).
+
+Quick start:
+
+```bash
+docker compose up --build
+```
+
+Then open `http://localhost:5173`.
 
 ## Safety Boundary
 
