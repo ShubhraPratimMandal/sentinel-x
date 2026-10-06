@@ -6,12 +6,41 @@ on:
   pull_request:
 
 jobs:
-  repository-checks:
+  api:
+    name: API tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: pip install -r requirements.txt
+      - run: PYTHONPATH=. pytest -q
+
+  web:
+    name: Web build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/web/package.json
+      - run: npm install
+      - run: npm run build
+
+  repository:
+    name: Repository policy checks
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
+      - uses: actions/checkout@v4
       - name: Validate repository structure
         shell: bash
         run: |
@@ -20,6 +49,8 @@ jobs:
           test -f SECURITY.md
           test -f CONTRIBUTING.md
           test -f .env.example
+          test -f docker-compose.yml
+          test -f database/migrations/001_initial.sql
           test -d apps
           test -d services
           test -d docs
