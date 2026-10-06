@@ -1,0 +1,27 @@
+name: SENTINEL-X CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  repository-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Validate repository structure
+        shell: bash
+        run: |
+          set -e
+          test -f README.md
+          test -f SECURITY.md
+          test -f CONTRIBUTING.md
+          test -f .env.example
+          test -d apps
+          test -d services
+          test -d docs
+          test -d tests
+          echo "SENTINEL-X repository structure validated."
