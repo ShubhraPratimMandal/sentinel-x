@@ -26,7 +26,8 @@ const nav = [
   ["Entity Graph", Globe2],
   ["Incident Response", Siren],
   ["AI Analyst", BrainCircuit],
-  ["Data Explorer", Database],\n  ["Audit Trail", FileText],
+  ["Data Explorer", Database],
+  ["Audit Trail", FileText],
 ] as const;
 
 function AuditView({API}:{API:string}) {
@@ -43,7 +44,10 @@ function App() {
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any>(null);
   const [selectedIncident, setSelectedIncident] = useState<any>(null);
-  const [apiOnline, setApiOnline] = useState(false);\n  const [caseDetail, setCaseDetail] = useState<any>(null);\n  const [aiResult, setAiResult] = useState<any>(null);\n  const [aiLoading, setAiLoading] = useState(false);
+  const [apiOnline, setApiOnline] = useState(false);
+  const [caseDetail, setCaseDetail] = useState<any>(null);
+  const [aiResult, setAiResult] = useState<any>(null);
+  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -60,7 +64,19 @@ function App() {
     });
   }, []);
 
-  const openCase = async (item:any) => {\n    setSelectedIncident(item);\n    setAiResult(null);\n    try {\n      const data = await fetch(API + "/api/v1/incidents/" + encodeURIComponent(item.id)).then(r=>r.json());\n      setCaseDetail(data);\n    } catch { setCaseDetail(null); }\n  };\n\n  const runAiAnalysis = async () => {\n    if (!selectedIncident) return;\n    setAiLoading(true);\n    try {
+  const openCase = async (item:any) => {
+    setSelectedIncident(item);
+    setAiResult(null);
+    try {
+      const data = await fetch(API + "/api/v1/incidents/" + encodeURIComponent(item.id)).then(r=>r.json());
+      setCaseDetail(data);
+    } catch { setCaseDetail(null); }
+  };
+
+  const runAiAnalysis = async () => {
+    if (!selectedIncident) return;
+    setAiLoading(true);
+    try {
       const data = await fetch(API + "/api/v1/ai/analyze?case_id=" + encodeURIComponent(selectedIncident.id), {method:"POST"}).then(r=>r.json());
       setAiResult(data);
     } catch {
@@ -72,7 +88,10 @@ function App() {
         gaps:["Additional independent source corroboration is recommended before attribution."],
         confidence:78, disclaimer:"AI output is advisory and must be verified against source evidence."
       });
-    } finally { setAiLoading(false); }\n  };\n\n  const runSearch = async () => {
+    } finally { setAiLoading(false); }
+  };
+
+  const runSearch = async () => {
     if (query.trim().length < 2) return;
     const data = await fetch(API + "/api/v1/search?q=" + encodeURIComponent(query)).then(r => r.json());
     setSearchResults(data);
