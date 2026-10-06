@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import {
-  Activity, AlertTriangle, ArrowUpRight, BarChart3, BrainCircuit, ChevronRight,
+  Activity, AlertTriangle, ArrowUpRight, BarChart3, BrainCircuit, CheckCircle2, ChevronRight, Clock, FileText,
   CircleDot, Database, Globe2, Layers3, LockKeyhole, Radar, Search, Shield, Siren,
   TerminalSquare, X
 } from "lucide-react";
@@ -28,7 +28,7 @@ function App() {
   const [query, setQuery] = useState("");
   const [searchResults, setSearchResults] = useState<any>(null);
   const [selectedIncident, setSelectedIncident] = useState<any>(null);
-  const [apiOnline, setApiOnline] = useState(false);
+  const [apiOnline, setApiOnline] = useState(false);\n  const [caseDetail, setCaseDetail] = useState<any>(null);\n  const [aiResult, setAiResult] = useState<any>(null);\n  const [aiLoading, setAiLoading] = useState(false);
 
   useEffect(() => {
     Promise.all([
@@ -40,7 +40,7 @@ function App() {
     }).catch(() => setApiOnline(false));
   }, []);
 
-  const runSearch = async () => {
+  const openCase = async (item:any) => {\n    setSelectedIncident(item);\n    setAiResult(null);\n    try {\n      const data = await fetch(API + "/api/v1/incidents/" + encodeURIComponent(item.id)).then(r=>r.json());\n      setCaseDetail(data);\n    } catch { setCaseDetail(null); }\n  };\n\n  const runAiAnalysis = async () => {\n    if (!selectedIncident) return;\n    setAiLoading(true);\n    try {\n      const data = await fetch(API + "/api/v1/ai/analyze?case_id=" + encodeURIComponent(selectedIncident.id), {method:"POST"}).then(r=>r.json());\n      setAiResult(data);\n    } finally { setAiLoading(false); }\n  };\n\n  const runSearch = async () => {
     if (query.trim().length < 2) return;
     const data = await fetch(API + "/api/v1/search?q=" + encodeURIComponent(query)).then(r => r.json());
     setSearchResults(data);
@@ -116,7 +116,7 @@ function App() {
                 <div className="panel-heading"><div><span className="section-label">PRIORITY QUEUE</span><h3>Active intelligence alerts</h3></div>
                   <button className="text-button" onClick={()=>setSection("Incident Response")}>View queue <ArrowUpRight size={14}/></button></div>
                 <div className="alert-list">{alerts.map(a =>
-                  <div className="alert-row" key={a.id} onClick={()=>setSelectedIncident(a)}>
+                  <div className="alert-row" key={a.id} onClick={()=>openCase(a)}>
                     <div className={`severity ${a.severity.toLowerCase()}`}><AlertTriangle size={16}/></div>
                     <div className="alert-main"><strong>{a.title}</strong><span>{a.id} · {a.source} · {a.status}</span></div>
                     <div className="alert-time">{a.score}/100</div><ChevronRight size={16}/>
@@ -145,11 +145,11 @@ function App() {
         {section !== "Command Center" && (
           <section className="workspace">
             <div className="workspace-banner"><div><span className="section-label">ANALYST MODULE</span><h2>{section}</h2><p>Operational module connected to the SENTINEL-X defensive intelligence API.</p></div><div className="module-status">{apiOnline ? "API CONNECTED" : "DEMO MODE"}</div></div>
-            {section === "Investigations" && <div className="module-grid">{incidents.map(i=><button className="module-card" key={i.id} onClick={()=>setSelectedIncident(i)}><span>{i.id}</span><strong>{i.title}</strong><small>{i.severity} · {i.status} · SCORE {i.score}</small><ChevronRight/></button>)}</div>}
+            {section === "Investigations" && <div className="module-grid">{incidents.map(i=><button className="module-card" key={i.id} onClick={()=>openCase(i)}><span>{i.id}</span><strong>{i.title}</strong><small>{i.severity} · {i.status} · SCORE {i.score}</small><ChevronRight/></button>)}</div>}
             {section === "Incident Response" && <div className="module-grid">{alerts.map(a=><button className="module-card" key={a.id} onClick={()=>setSelectedIncident(a)}><span>{a.id}</span><strong>{a.title}</strong><small>{a.severity} · {a.status} · {a.source}</small><ChevronRight/></button>)}</div>}
             {section === "Threat Intelligence" && <div className="intel-table"><div className="table-head"><span>ID</span><span>TYPE</span><span>VALUE</span><span>CONFIDENCE</span><span>SEVERITY</span></div>{["IOC-0001","IOC-0002","IOC-0003","IOC-0004"].map((id,i)=><div className="table-row" key={id}><span>{id}</span><span>{["IPv4","Domain","SHA-256","URL"][i]}</span><span>{["198.51.100.42","telemetry-lab.example","000000…000000","demo.invalid/resource"][i]}</span><span>{[94,81,73,66][i]}%</span><span>{["CRITICAL","HIGH","MEDIUM","MEDIUM"][i]}</span></div>)}</div>}
             {section === "Entity Graph" && <div className="graph-stage"><div className="graph-node center">INC-2026-0042</div><div className="graph-node n1">IOC-0001</div><div className="graph-node n2">T1110</div><div className="graph-node n3">T1078</div><div className="graph-node n4">AUTH-GATEWAY</div><div className="graph-line l1"/><div className="graph-line l2"/><div className="graph-line l3"/><div className="graph-line l4"/><p>Relationship visualization uses synthetic entities. Production graph analytics will be added in the next release.</p></div>}
-            {section === "AI Analyst" && <div className="ai-panel"><BrainCircuit size={32}/><h3>Analyst Copilot</h3><p>Advisory analysis layer. Future responses will be grounded in case evidence, source provenance, confidence, and ATT&CK mappings.</p><div className="ai-prompt">Ask: “Summarize the evidence in INC-2026-0042.”</div><div className="ai-disclaimer">AI OUTPUT IS ADVISORY · VERIFY AGAINST SOURCE EVIDENCE</div></div>}
+            {section === "AI Analyst" && <div className="ai-panel"><BrainCircuit size={32}/><h3>Analyst Copilot</h3><p>Generate a grounded advisory assessment for a synthetic case. The output separates observations, hypotheses, evidence gaps, and confidence.</p><div className="ai-case-row"><select value={selectedIncident?.id || incidents[0]?.id || ""} onChange={e=>{const x=incidents.find(i=>i.id===e.target.value); if(x) setSelectedIncident(x);}}>{incidents.map(i=><option key={i.id} value={i.id}>{i.id} · {i.title}</option>)}</select><button onClick={runAiAnalysis}>{aiLoading ? "ANALYZING..." : "RUN ANALYSIS"}</button></div>{aiResult && <div className="ai-result"><div className="ai-result-head"><span>ADVISORY ASSESSMENT</span><b>{aiResult.confidence}% CONFIDENCE</b></div><h4>{aiResult.summary}</h4><strong>OBSERVED</strong><ul>{aiResult.observed.map((x:string)=><li key={x}>{x}</li>)}</ul><strong>HYPOTHESES</strong><ul>{aiResult.hypotheses.map((x:string)=><li key={x}>{x}</li>)}</ul><strong>GAPS</strong><ul>{aiResult.gaps.map((x:string)=><li key={x}>{x}</li>)}</ul></div>}<div className="ai-disclaimer">AI OUTPUT IS ADVISORY · VERIFY AGAINST SOURCE EVIDENCE</div></div>}
             {section === "Data Explorer" && <div>{searchResults ? <div className="module-grid">{[...searchResults.alerts,...searchResults.incidents,...searchResults.indicators].map((x:any,i)=><div className="module-card static" key={i}><span>{x.id}</span><strong>{x.title || x.value}</strong><small>{x.severity || x.indicator_type} · confidence {x.confidence ?? x.score ?? "n/a"}</small></div>)}</div> : <div className="empty-state"><Search size={30}/><h3>Search intelligence</h3><p>Use the search field above to query synthetic indicators, alerts, and incidents.</p></div>}</div>}
           </section>
         )}
@@ -157,11 +157,13 @@ function App() {
         <footer><span>SENTINEL-X / DEFENSIVE RESEARCH PLATFORM</span><span>DATA MODE: SYNTHETIC · BUILD 0.2.0</span></footer>
       </main>
 
-      {selectedIncident && <div className="modal-backdrop" onClick={()=>setSelectedIncident(null)}><div className="modal" onClick={e=>e.stopPropagation()}>
-        <button className="modal-close" onClick={()=>setSelectedIncident(null)}><X/></button>
+      {selectedIncident && <div className="modal-backdrop" onClick={()=>{setSelectedIncident(null);setCaseDetail(null);}}><div className="modal" onClick={e=>e.stopPropagation()}>
+        <button className="modal-close" onClick={()=>{setSelectedIncident(null);setCaseDetail(null);}}><X/></button>
         <span className="section-label">CASE DETAIL</span><h2>{selectedIncident.id}</h2><h3>{selectedIncident.title}</h3>
         <div className="modal-grid"><div><span>SEVERITY</span><b>{selectedIncident.severity}</b></div><div><span>STATUS</span><b>{selectedIncident.status}</b></div><div><span>SCORE</span><b>{selectedIncident.score}/100</b></div><div><span>SOURCE</span><b>{selectedIncident.source || "CORRELATION ENGINE"}</b></div></div>
-        <p>This case is part of the synthetic defensive dataset. Detailed evidence, timeline, ATT&CK mappings, analyst notes, and audit history will be attached as the case-management layer expands.</p>
+        <div className="case-actions"><button onClick={runAiAnalysis}><BrainCircuit size={14}/> Advisory analysis</button><a href={API + "/api/v1/incidents/" + encodeURIComponent(selectedIncident.id) + "/report"} target="_blank" rel="noreferrer"><FileText size={14}/> Report</a></div>
+        <div className="timeline"><div className="timeline-title"><Clock size={14}/> EVIDENCE TIMELINE</div>{(caseDetail?.timeline || []).map((e:any)=><div className="timeline-event" key={e.id}><div><CheckCircle2 size={13}/></div><span><b>{e.event_type}</b><small>{new Date(e.timestamp).toLocaleString()} · confidence {e.confidence}%</small><em>{e.description}</em></span></div>)}</div>
+        <p>This case is part of the synthetic defensive dataset. Analyst actions are advisory and must be validated against source evidence.</p>
       </div></div>}
     </div>
   );
