@@ -1,4 +1,4 @@
-from .models import Alert, Incident, Indicator, TimelineEvent, now
+from .models import Alert, AuditEvent, Incident, Indicator, TimelineEvent, now
 
 INDICATORS = [
     Indicator(id="IOC-0001", indicator_type="ipv4", value="198.51.100.42", confidence=94, severity="CRITICAL", source="SYNTHETIC-SENSOR-A", first_seen=now(), last_seen=now()),
@@ -22,4 +22,10 @@ TIMELINE = [
     TimelineEvent(id="EV-1001", incident_id="INC-2026-0042", timestamp=now(), event_type="DETECTION", description="Synthetic authentication anomaly detected.", confidence=96),
     TimelineEvent(id="EV-1002", incident_id="INC-2026-0042", timestamp=now(), event_type="CORRELATION", description="Events correlated by source, timing, and indicator relationship.", confidence=88),
     TimelineEvent(id="EV-1003", incident_id="INC-2026-0042", timestamp=now(), event_type="TRIAGE", description="Analyst triage elevated the incident for investigation.", confidence=93),
+]
+
+AUDIT_EVENTS = [
+    AuditEvent(id="AUD-0001", actor="ANALYST-01", action="CASE_OPENED", target="INC-2026-0042", timestamp=now(), outcome="SUCCESS", details="Synthetic case opened for defensive investigation."),
+    AuditEvent(id="AUD-0002", actor="CORRELATION-ENGINE", action="RISK_RECALCULATED", target="INC-2026-0042", timestamp=now(), outcome="SUCCESS", details="Risk score recalculated from synthetic evidence."),
+    AuditEvent(id="AUD-0003", actor="AI-ANALYST", action="ADVISORY_GENERATED", target="INC-2026-0042", timestamp=now(), outcome="REVIEW", details="Advisory output generated; human verification required."),
 ]
