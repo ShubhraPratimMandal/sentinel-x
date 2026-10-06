@@ -54,3 +54,24 @@ jobs:
           test -d docs
           test -d tests
           echo "SENTINEL-X repository structure validated."
+
+  containers:
+    name: Production container builds
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - context: ./apps/api
+            dockerfile: Dockerfile.prod
+            tag: sentinel-x-api:test
+          - context: ./apps/web
+            dockerfile: Dockerfile.prod
+            tag: sentinel-x-web:test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.context }}/${{ matrix.dockerfile }}
+          push: false
+          tags: ${{ matrix.tag }}
