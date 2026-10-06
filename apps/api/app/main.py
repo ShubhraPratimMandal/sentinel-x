@@ -85,6 +85,40 @@ def incident(incident_id: str):
             return {"incident": row, "timeline": [x for x in TIMELINE if x.incident_id == incident_id]}
     raise HTTPException(status_code=404, detail="Incident not found")
 
+@app.get("/api/v1/graph")
+def graph():
+    return {
+        "nodes": [
+            {"id": "INC-2026-0042", "type": "incident", "label": "Credential anomaly cluster"},
+            {"id": "IOC-0001", "type": "indicator", "label": "198.51.100.42"},
+            {"id": "T1110", "type": "technique", "label": "Brute Force"},
+            {"id": "T1078", "type": "technique", "label": "Valid Accounts"},
+            {"id": "AUTH-GATEWAY", "type": "sensor", "label": "AUTH-GATEWAY"},
+        ],
+        "edges": [
+            {"source": "INC-2026-0042", "target": "IOC-0001", "type": "CONTAINS_INDICATOR"},
+            {"source": "INC-2026-0042", "target": "T1110", "type": "MAPPED_TO_TECHNIQUE"},
+            {"source": "INC-2026-0042", "target": "T1078", "type": "MAPPED_TO_TECHNIQUE"},
+            {"source": "INC-2026-0042", "target": "AUTH-GATEWAY", "type": "OBSERVED_BY"},
+        ],
+    }
+
+@app.post("/api/v1/ai/analyze")
+def ai_analyze(case_id: str = Query(min_length=3, max_length=80)):
+    incident = next((x for x in INCIDENTS if x.id == case_id), None)
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return {
+        "case_id": case_id,
+        "mode": "advisory",
+        "summary": f"{incident.title} is currently {incident.status.lower()} with a risk score of {incident.score}/100.",
+        "observed": ["Synthetic security observations are correlated to this case.", "The case is mapped to defensive ATT&CK techniques."],
+        "hypotheses": ["The evidence may represent a coordinated authentication pattern; analyst validation is required."],
+        "gaps": ["Additional independent source corroboration is recommended before attribution."],
+        "confidence": 78,
+        "disclaimer": "AI output is advisory and must be verified against source evidence.",
+    }
+
 @app.get("/api/v1/search")
 def search(q: str = Query(min_length=2, max_length=100)):
     needle = q.lower()
