@@ -9,6 +9,15 @@ type Alert = { id:string; severity:string; title:string; source:string; status:s
 type Incident = { id:string; title:string; severity:string; status:string; score:number; technique_ids:string[]; indicator_ids:string[] };
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const DEMO_ALERTS: Alert[] = [
+  {id:"SX-0421",title:"Synthetic credential anomaly cluster",severity:"CRITICAL",source:"AUTH-GATEWAY",status:"INVESTIGATING",score:91},
+  {id:"SX-0418",title:"Suspicious DNS observation group",severity:"HIGH",source:"DNS-SENSOR",status:"OPEN",score:78},
+  {id:"SX-0415",title:"Repeated failed authentication pattern",severity:"MEDIUM",source:"IDENTITY",status:"OPEN",score:61}
+];
+const DEMO_INCIDENTS: Incident[] = [
+  {id:"INC-2026-0042",title:"Credential anomaly cluster",severity:"CRITICAL",status:"INVESTIGATING",score:91,technique_ids:["T1110","T1078"],indicator_ids:["IOC-0001"]},
+  {id:"INC-2026-0041",title:"Synthetic DNS correlation",severity:"HIGH",status:"OPEN",score:78,technique_ids:["T1071.004"],indicator_ids:["IOC-0002"]}
+];
 
 const nav = [
   ["Command Center", TerminalSquare],
@@ -43,10 +52,27 @@ function App() {
       fetch(API + "/api/v1/incidents").then(r => r.json()),
     ]).then(([o,a,i]) => {
       setOverview(o); setAlerts(a); setIncidents(i); setApiOnline(true);
-    }).catch(() => setApiOnline(false));
+    }).catch(() => {
+      setOverview({active_cases:2,correlated_events:1842,high_risk_iocs:2,analyst_queue:3,threat_posture:76,open_alerts:2,incidents:2});
+      setAlerts(DEMO_ALERTS);
+      setIncidents(DEMO_INCIDENTS);
+      setApiOnline(false);
+    });
   }, []);
 
-  const openCase = async (item:any) => {\n    setSelectedIncident(item);\n    setAiResult(null);\n    try {\n      const data = await fetch(API + "/api/v1/incidents/" + encodeURIComponent(item.id)).then(r=>r.json());\n      setCaseDetail(data);\n    } catch { setCaseDetail(null); }\n  };\n\n  const runAiAnalysis = async () => {\n    if (!selectedIncident) return;\n    setAiLoading(true);\n    try {\n      const data = await fetch(API + "/api/v1/ai/analyze?case_id=" + encodeURIComponent(selectedIncident.id), {method:"POST"}).then(r=>r.json());\n      setAiResult(data);\n    } finally { setAiLoading(false); }\n  };\n\n  const runSearch = async () => {
+  const openCase = async (item:any) => {\n    setSelectedIncident(item);\n    setAiResult(null);\n    try {\n      const data = await fetch(API + "/api/v1/incidents/" + encodeURIComponent(item.id)).then(r=>r.json());\n      setCaseDetail(data);\n    } catch { setCaseDetail(null); }\n  };\n\n  const runAiAnalysis = async () => {\n    if (!selectedIncident) return;\n    setAiLoading(true);\n    try {
+      const data = await fetch(API + "/api/v1/ai/analyze?case_id=" + encodeURIComponent(selectedIncident.id), {method:"POST"}).then(r=>r.json());
+      setAiResult(data);
+    } catch {
+      setAiResult({
+        case_id:selectedIncident.id, mode:"advisory",
+        summary:`${selectedIncident.title} is a synthetic case with a risk score of ${selectedIncident.score}/100.`,
+        observed:["Synthetic security observations are correlated to this case.","The case is mapped to defensive ATT&CK techniques."],
+        hypotheses:["The evidence may represent a coordinated authentication pattern; analyst validation is required."],
+        gaps:["Additional independent source corroboration is recommended before attribution."],
+        confidence:78, disclaimer:"AI output is advisory and must be verified against source evidence."
+      });
+    } finally { setAiLoading(false); }\n  };\n\n  const runSearch = async () => {
     if (query.trim().length < 2) return;
     const data = await fetch(API + "/api/v1/search?q=" + encodeURIComponent(query)).then(r => r.json());
     setSearchResults(data);
