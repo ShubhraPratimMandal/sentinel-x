@@ -17,8 +17,14 @@ const nav = [
   ["Entity Graph", Globe2],
   ["Incident Response", Siren],
   ["AI Analyst", BrainCircuit],
-  ["Data Explorer", Database],
+  ["Data Explorer", Database],\n  ["Audit Trail", FileText],
 ] as const;
+
+function AuditView({API}:{API:string}) {
+  const [events,setEvents]=useState<any[]>([]);
+  useEffect(()=>{fetch(API+"/api/v1/audit").then(r=>r.json()).then(x=>setEvents(x.events||[])).catch(()=>setEvents([]));},[API]);
+  return <div className="audit-list">{events.map(e=><div className="audit-row" key={e.id}><div className="audit-icon"><FileText size={14}/></div><div><strong>{e.action}</strong><span>{e.actor} → {e.target}</span><small>{new Date(e.timestamp).toLocaleString()} · {e.details}</small></div><b className={e.outcome.toLowerCase()}>{e.outcome}</b></div>)}</div>;
+}
 
 function App() {
   const [section, setSection] = useState("Command Center");
@@ -150,6 +156,7 @@ function App() {
             {section === "Threat Intelligence" && <div className="intel-table"><div className="table-head"><span>ID</span><span>TYPE</span><span>VALUE</span><span>CONFIDENCE</span><span>SEVERITY</span></div>{["IOC-0001","IOC-0002","IOC-0003","IOC-0004"].map((id,i)=><div className="table-row" key={id}><span>{id}</span><span>{["IPv4","Domain","SHA-256","URL"][i]}</span><span>{["198.51.100.42","telemetry-lab.example","000000…000000","demo.invalid/resource"][i]}</span><span>{[94,81,73,66][i]}%</span><span>{["CRITICAL","HIGH","MEDIUM","MEDIUM"][i]}</span></div>)}</div>}
             {section === "Entity Graph" && <div className="graph-stage"><div className="graph-node center">INC-2026-0042</div><div className="graph-node n1">IOC-0001</div><div className="graph-node n2">T1110</div><div className="graph-node n3">T1078</div><div className="graph-node n4">AUTH-GATEWAY</div><div className="graph-line l1"/><div className="graph-line l2"/><div className="graph-line l3"/><div className="graph-line l4"/><p>Relationship visualization uses synthetic entities. Production graph analytics will be added in the next release.</p></div>}
             {section === "AI Analyst" && <div className="ai-panel"><BrainCircuit size={32}/><h3>Analyst Copilot</h3><p>Generate a grounded advisory assessment for a synthetic case. The output separates observations, hypotheses, evidence gaps, and confidence.</p><div className="ai-case-row"><select value={selectedIncident?.id || incidents[0]?.id || ""} onChange={e=>{const x=incidents.find(i=>i.id===e.target.value); if(x) setSelectedIncident(x);}}>{incidents.map(i=><option key={i.id} value={i.id}>{i.id} · {i.title}</option>)}</select><button onClick={runAiAnalysis}>{aiLoading ? "ANALYZING..." : "RUN ANALYSIS"}</button></div>{aiResult && <div className="ai-result"><div className="ai-result-head"><span>ADVISORY ASSESSMENT</span><b>{aiResult.confidence}% CONFIDENCE</b></div><h4>{aiResult.summary}</h4><strong>OBSERVED</strong><ul>{aiResult.observed.map((x:string)=><li key={x}>{x}</li>)}</ul><strong>HYPOTHESES</strong><ul>{aiResult.hypotheses.map((x:string)=><li key={x}>{x}</li>)}</ul><strong>GAPS</strong><ul>{aiResult.gaps.map((x:string)=><li key={x}>{x}</li>)}</ul></div>}<div className="ai-disclaimer">AI OUTPUT IS ADVISORY · VERIFY AGAINST SOURCE EVIDENCE</div></div>}
+            {section === "Audit Trail" && <AuditView API={API} />}
             {section === "Data Explorer" && <div>{searchResults ? <div className="module-grid">{[...searchResults.alerts,...searchResults.incidents,...searchResults.indicators].map((x:any,i)=><div className="module-card static" key={i}><span>{x.id}</span><strong>{x.title || x.value}</strong><small>{x.severity || x.indicator_type} · confidence {x.confidence ?? x.score ?? "n/a"}</small></div>)}</div> : <div className="empty-state"><Search size={30}/><h3>Search intelligence</h3><p>Use the search field above to query synthetic indicators, alerts, and incidents.</p></div>}</div>}
           </section>
         )}
