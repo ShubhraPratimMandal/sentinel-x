@@ -1,27 +1,42 @@
+import os
 from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import PlainTextResponse
 from .data import ALERTS, INCIDENTS, INDICATORS, TIMELINE
 from .models import SystemOverview
 from .risk import posture
 
+VERSION = "0.3.0"
+
 app = FastAPI(
     title="SENTINEL-X API",
-    version="0.2.0",
+    version=VERSION,
     description="Defensive cyber intelligence and threat analysis API.",
 )
 
+allowed_origins = os.getenv("SENTINEL_ALLOWED_ORIGINS", "http://localhost:5173").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[x.strip() for x in allowed_origins if x.strip()],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
 
+@app.middleware("http")
+async def security_headers(request, call_next):
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["Referrer-Policy"] = "no-referrer"
+    response.headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()"
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
 @app.get("/health")
 def health() -> dict[str, str]:
-    return {"status": "operational", "service": "sentinel-x-api", "version": "0.2.0"}
+    return {"status": "operational", "service": "sentinel-x-api", "version": VERSION}
 
 @app.get("/api/v1/system/overview", response_model=SystemOverview)
 def overview() -> SystemOverview:
@@ -40,10 +55,15 @@ def overview() -> SystemOverview:
 def system_status() -> dict:
     return {
         "platform": "SENTINEL-X",
-        "environment": "development",
+        "environment": os.getenv("SENTINEL_ENV", "development"),
         "mode": "defensive-research",
         "data_mode": "synthetic",
-        "services": {"api": "operational", "intelligence": "operational", "correlation": "operational", "ai": "standby"},
+        "services": {
+            "api": "operational",
+            "intelligence": "operational",
+            "correlation": "operational",
+            "ai": "standby",
+        },
     }
 
 @app.get("/api/v1/indicators")
@@ -84,6 +104,83 @@ def incident(incident_id: str):
         if row.id == incident_id:
             return {"incident": row, "timeline": [x for x in TIMELINE if x.incident_id == incident_id]}
     raise HTTPException(status_code=404, detail="Incident not found")
+
+@app.get("/api/v1/incidents/{incident_id}/timeline")
+def incident_timeline(incident_id: str):
+    if not any(x.id == incident_id for x in INCIDENTS):
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return {
+        "incident_id": incident_id,
+        "events": sorted(
+            [x.model_dump() for x in TIMELINE if x.incident_id == incident_id],
+            key=lambda x: x["timestamp"],
+        ),
+    }
+
+@app.get("/api/v1/incidents/{incident_id}/workflow")
+def incident_workflow(incident_id: str):
+    incident = next((x for x in INCIDENTS if x.id == incident_id), None)
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    return {
+        "incident_id": incident_id,
+        "workflow": [
+            {"stage": "TRIAGE", "status": "COMPLETE", "owner": "ANALYST-01"},
+            {"stage": "INVESTIGATION", "status": "ACTIVE" if incident.status == "INVESTIGATING" else "QUEUED", "owner": "ANALYST-01"},
+            {"stage": "CONTAINMENT", "status": "PENDING", "owner": "RESPONSE-TEAM"},
+            {"stage": "RECOVERY", "status": "PENDING", "owner": "RESPONSE-TEAM"},
+            {"stage": "LESSONS_LEARNED", "status": "PENDING", "owner": "CASE-MANAGER"},
+        ],
+        "next_action": "Validate evidence and document analyst disposition before containment.",
+    }
+
+@app.get("/api/v1/incidents/{incident_id}/report", response_class=PlainTextResponse)
+def incident_report(incident_id: str):
+    incident = next((x for x in INCIDENTS if x.id == incident_id), None)
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    events = [x for x in TIMELINE if x.incident_id == incident_id]
+    lines = [
+        "SENTINEL-X INCIDENT REPORT",
+        f"CASE: {incident.id}",
+        f"TITLE: {incident.title}",
+        f"SEVERITY: {incident.severity}",
+        f"STATUS: {incident.status}",
+        f"RISK SCORE: {incident.score}/100",
+        "",
+        "TECHNIQUES: " + ", ".join(incident.technique_ids),
+        "INDICATORS: " + ", ".join(incident.indicator_ids),
+        "",
+        "TIMELINE",
+    ]
+    lines.extend(f"- {x.timestamp.isoformat()} | {x.event_type} | {x.description} | confidence={x.confidence}%" for x in events)
+    lines += ["", "ANALYST NOTE: Synthetic defensive research data. Validate evidence before operational decisions."]
+    return "\n".join(lines)
+
+@app.get("/api/v1/analytics/risk-distribution")
+def risk_distribution():
+    buckets = {"0-24": 0, "25-49": 0, "50-74": 0, "75-89": 0, "90-100": 0}
+    for alert in ALERTS:
+        score = alert.score
+        if score < 25: buckets["0-24"] += 1
+        elif score < 50: buckets["25-49"] += 1
+        elif score < 75: buckets["50-74"] += 1
+        elif score < 90: buckets["75-89"] += 1
+        else: buckets["90-100"] += 1
+    return {"buckets": buckets, "method": "score-bucket distribution over synthetic alerts"}
+
+@app.get("/api/v1/analytics/explain/{incident_id}")
+def explain_risk(incident_id: str):
+    incident = next((x for x in INCIDENTS if x.id == incident_id), None)
+    if not incident:
+        raise HTTPException(status_code=404, detail="Incident not found")
+    evidence = [
+        {"factor": "Alert severity", "weight": 35, "reason": incident.severity},
+        {"factor": "Risk score", "weight": 30, "reason": f"{incident.score}/100"},
+        {"factor": "Technique coverage", "weight": 20, "reason": f"{len(incident.technique_ids)} mapped techniques"},
+        {"factor": "Indicator coverage", "weight": 15, "reason": f"{len(incident.indicator_ids)} linked indicators"},
+    ]
+    return {"incident_id": incident_id, "factors": evidence, "recommendation": "Prioritize corroboration and analyst review.", "confidence": 82}
 
 @app.get("/api/v1/graph")
 def graph():
