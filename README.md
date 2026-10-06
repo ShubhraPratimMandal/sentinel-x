@@ -5,7 +5,7 @@
 > A defensive cybersecurity research platform for threat intelligence fusion, incident analysis, entity correlation, AI-assisted investigation, and security operations visualization.
 
 **Project Status:** 🟡 Active Development  
-**Current Release:** 0.2.0-intelligence-core  
+**Current Release:** 0.3.0-analyst-operations  
 **Classification:** Public Research / Demonstration  
 **Primary Focus:** Cybersecurity • Threat Intelligence • AI • Security Analytics • Cloud
 
@@ -150,24 +150,28 @@ sentinel-x/
 ### Phase 3 — Analyst Operations
 - [x] Investigation workspace foundation
 - [x] Entity graph foundation
-- [ ] Timeline analysis
+- [x] Timeline analysis
 - [x] Threat visualization foundation
-- [ ] Analyst workflow
-- [ ] Audit trail
+- [x] Analyst workflow
+- [x] Audit trail
 
 ### Phase 4 — AI & Analytics
 - [x] Advisory AI analyst endpoint
-- [ ] Report generation
-- [ ] Confidence-aware analysis
-- [ ] Advanced analytics
-- [ ] Explainable recommendations
+- [x] Report generation
+- [x] Confidence-aware analysis
+- [x] Advanced analytics
+- [x] Explainable recommendations
 
 ### Phase 5 — Cloud & Release
-- [ ] Security hardening
-- [ ] Full CI/CD
-- [ ] OCI deployment
-- [ ] Production documentation
-- [ ] Public demo release
+- [x] Security hardening baseline
+- [x] CI/CD + CodeQL + public demo pipeline
+- [x] OCI deployment template
+- [x] Production-readiness documentation
+- [x] Public demo workflow
+
+## Release & Demonstration
+
+The repository includes a GitHub Pages workflow for the public synthetic-data demonstration. The web console falls back to offline demo data when the API is unavailable. This is a research/demo release, not an operational intelligence system.
 
 ## Local Development
 
