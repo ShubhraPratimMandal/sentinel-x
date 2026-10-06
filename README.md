@@ -5,7 +5,7 @@
 > A defensive cybersecurity research platform for threat intelligence fusion, incident analysis, entity correlation, AI-assisted investigation, and security operations visualization.
 
 **Project Status:** 🟡 Active Development  
-**Current Release:** 0.1.0-foundation  
+**Current Release:** 0.2.0-intelligence-core  
 **Classification:** Public Research / Demonstration  
 **Primary Focus:** Cybersecurity • Threat Intelligence • AI • Security Analytics • Cloud
 
@@ -140,23 +140,23 @@ sentinel-x/
 - [x] CI repository validation
 
 ### Phase 2 — Intelligence Core
-- [ ] IOC registry
-- [ ] Event normalization
-- [ ] Correlation engine
-- [ ] Risk scoring
-- [ ] Incident management
-- [ ] ATT&CK mapping
+- [x] IOC registry
+- [x] Event normalization foundation
+- [x] Correlation engine foundation
+- [x] Risk scoring
+- [x] Incident management foundation
+- [x] ATT&CK mapping foundation
 
 ### Phase 3 — Analyst Operations
-- [ ] Investigation workspace
-- [ ] Entity graph
+- [x] Investigation workspace foundation
+- [x] Entity graph foundation
 - [ ] Timeline analysis
-- [ ] Threat visualization
+- [x] Threat visualization foundation
 - [ ] Analyst workflow
 - [ ] Audit trail
 
 ### Phase 4 — AI & Analytics
-- [ ] AI analyst assistant
+- [x] Advisory AI analyst endpoint
 - [ ] Report generation
 - [ ] Confidence-aware analysis
 - [ ] Advanced analytics
