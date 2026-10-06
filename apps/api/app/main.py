@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import PlainTextResponse
-from .data import ALERTS, INCIDENTS, INDICATORS, TIMELINE
+from .data import ALERTS, AUDIT_EVENTS, INCIDENTS, INDICATORS, TIMELINE
 from .models import SystemOverview
 from .risk import posture
 
@@ -181,6 +181,13 @@ def explain_risk(incident_id: str):
         {"factor": "Indicator coverage", "weight": 15, "reason": f"{len(incident.indicator_ids)} linked indicators"},
     ]
     return {"incident_id": incident_id, "factors": evidence, "recommendation": "Prioritize corroboration and analyst review.", "confidence": 82}
+
+@app.get("/api/v1/audit")
+def audit_events(actor: str | None = Query(default=None)):
+    rows = AUDIT_EVENTS
+    if actor:
+        rows = [x for x in rows if x.actor == actor]
+    return {"events": rows, "count": len(rows), "data_mode": "synthetic"}
 
 @app.get("/api/v1/graph")
 def graph():
